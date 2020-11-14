@@ -28,9 +28,14 @@ public class Client {
 
 	public void start() {
 		System.out.println("Starting client processing ...");
+		boolean firstTurn = true;
 		GameState state;
 		try {
 			while ((state = readStateFromServer()) != null) {
+				if (firstTurn) {
+					ai.setPlayer(state.getPlayer());
+					firstTurn = false;
+				}
 				int move = ai.computeMove(state);
 				respondWithMove(move);
 			}
