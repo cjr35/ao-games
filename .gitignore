@@ -65,3 +65,5 @@ sdks/javascript/yarn.lock
 sdks/python/client.py
 sdks/python/README.md
 sdks/python/test.py
+sdks/cs/connectfour/obj/Debug/netcoreapp2.1/connectfour.AssemblyInfo.cs
+sdks/cs/connectfour/obj/Debug/netcoreapp2.1/connectfour.AssemblyInfoInputs.cache

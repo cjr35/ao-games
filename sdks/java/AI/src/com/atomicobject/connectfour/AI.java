@@ -1,11 +1,16 @@
 package com.atomicobject.connectfour;
 
-public class AI {
+import java.util.Random;
 
-	public AI() {}
+public class AI {
+	private Random random;
+
+	public AI() {
+		random = new Random();
+	}
 
 	public int computeMove(GameState state) {
-		System.out.println("AI returning canned move for game state - " + state);
-		return 1;
+		System.out.println("AI returning random move for game state - " + state);
+		return random.nextInt(7);
 	}
 }
