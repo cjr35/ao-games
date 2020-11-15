@@ -27,7 +27,10 @@ public class AI {
 
 	public int computeMove(GameState state) {
 		MonteCarloNode localRoot = nodeCache.getOrDefault(state.getKey(), new MonteCarloNode(lastNode, state, mcTemp));
-		mcts(localRoot);
+		mctsExpand(localRoot);
+		for (int i = 0; i < 7; i++) {
+			mcts(localRoot);
+		}
 		int move = mctsGetBestChild(localRoot);
 
 		GameState chosenState = state.simulate(move);
@@ -40,9 +43,12 @@ public class AI {
 			if (current.getVisits() == 0) {
 				mctsRollout(current);
 			}
-			else {
+			else if (!current.STATE.isTerminal()) {
 				MonteCarloNode next = mctsExpand(current);
 				mctsRollout(next);
+			}
+			else {
+				current.propagate(10, 1);
 			}
 		}
 		else {
@@ -58,13 +64,16 @@ public class AI {
 
 		for (int i = 0; i < children.length; i++) {
 			MonteCarloNode child = children[i];
+			if (child == null) {
+				continue;
+			}
 			float ucb = child.upperConfidenceBound();
+			System.out.println(ucb);
 			if (ucb > maxUCB) {
 				maxUCB = ucb;
 				bestChildIndex = i;
 			}
 		}
-
 		return bestChildIndex;
 	}
 
@@ -93,17 +102,20 @@ public class AI {
 	}
 
 	private void mctsRollout(MonteCarloNode node) {
+		int tryMove = random.nextInt(7);
 		if (!node.STATE.isTerminal()) {
-			GameState nextState;
-			try {
-				nextState = node.STATE.simulate(random.nextInt(7));
+			while (!node.STATE.getMoveMatrix()[tryMove]) {
+				tryMove = (tryMove + 1) % 7;
 			}
-			catch (IllegalArgumentException iax) {
-				mctsRollout(node);
-				return;
-			}
+			GameState nextState = node.STATE.simulate(tryMove);
 			MonteCarloNode next = new MonteCarloNode(node, nextState, mcTemp);
-			nodeCache.putIfAbsent(nextState.getKey(), next);
+			if (!nodeCache.containsKey(nextState.getKey())) {
+				node.setChild(tryMove, next);
+				nodeCache.put(nextState.getKey(), next);
+			}
+			else {
+				node.setChild(tryMove, next);
+			}
 			mctsRollout(next);
 		}
 		else {

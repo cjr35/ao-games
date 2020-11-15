@@ -37,7 +37,10 @@ public class Client {
 					ai.setTurnTimeLimit(state.getMaxTurnTime());
 					firstTurn = false;
 				}
+				long start = System.currentTimeMillis();
 				int move = ai.computeMove(state);
+				long end = System.currentTimeMillis();
+				System.out.println("----------------------------------------------time: " + (end - start));
 				respondWithMove(move);
 			}
 		} catch (Exception e) {

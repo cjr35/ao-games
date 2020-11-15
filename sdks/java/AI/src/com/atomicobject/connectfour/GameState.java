@@ -30,10 +30,6 @@ public class GameState {
 		createKeyIfAbsent();
 	}
 
-	public void updateBoard(int row, int col, int player) {
-		board[row][col] = player;
-	}
-
 	private void createKeyIfAbsent() {
 		if (key == null) {
 			key = "";
@@ -50,6 +46,7 @@ public class GameState {
 	}
 
 	public String getKey() {
+		createKeyIfAbsent();
 		return key;
 	}
 
@@ -69,11 +66,16 @@ public class GameState {
 		GameState next = new GameState();
 
 		int keyIndex = row * 7 + move;
-		String nextKey = key.substring(0, keyIndex) + String.valueOf(player) + key.substring(keyIndex + 1);
+		createKeyIfAbsent();
+		String nextKey = key.substring(0, keyIndex) + player + key.substring(keyIndex + 1);
 		next.setKey(nextKey);
 
-		next.setBoard(board);
-		next.updateBoard(player, row, move);
+		int[][] nextBoard = new int[board.length][board[0].length];
+		for (int i = 0; i < board.length; i++) {
+			nextBoard[i] = Arrays.copyOf(board[i], 7);
+		}
+		nextBoard[row][move] = player;
+		next.setBoard(nextBoard);
 
 		next.setPlayer(player == 1 ? 2 : 1);
 		next.setMaxTurnTime(maxTurnTime);
@@ -105,12 +107,90 @@ public class GameState {
 	}
 
 	public boolean isTerminal() {
+		return isWin(1) || isWin(2) || isDraw();
+	}
+
+	public int evaluate(int player) {
+		if (isWin(player)) {
+			return 1;
+		}
+		else if (isLoss(player)) {
+			return -1;
+		}
+		else {
+			return 0;
+		}
+	}
+
+	private boolean isWin(int player) {
+		return findShapes(player, winShapes);
+	}
+
+	private boolean isLoss(int player) {
+		int opponent = player == 1 ? 2 : 1;
+		return findShapes(opponent, winShapes);
+	}
+
+	private boolean isDraw() {
 		for (int i : board[0]) {
 			if (i == 0) {
-				return false;
+				return false; // if any top space is available
 			}
 		}
 		return true;
+	}
+
+	private static int[][][] winShapes = {
+			{	{ 0, 0 },
+				{ 1, 0 },
+				{ 2, 0 },
+				{ 3, 0 }	},	// vertical		|
+
+			{	{ 0, 0 },
+				{ 1, 1 },
+				{ 2, 2 },
+				{ 3, 3 }	},	// diagonal		\
+
+			{	{ 0, 0 },
+				{ 0, 1 },
+				{ 0, 2 },
+				{ 0, 3 }	},	// across		-
+
+			{	{ 0, 0 },
+				{ 1, -1 },
+				{ 2, -2 },
+				{ 3, -3 }	},	// diagonal		/
+	};
+
+	private boolean findShapes(int player, int[][][] shapeList) {
+		for (int i = 0; i < board.length; i++) {
+			for (int j = 0; j < board[0].length; j++) {
+				for (int[][] shape : shapeList) {
+					if (findShapeAt(i, j, shape, player)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private boolean findShapeAt(int row, int col, int[][] shape, int player) {
+		for (int[] coordinate : shape) {
+			int rOffset = row + coordinate[0];
+			int cOffset = col + coordinate[1];
+
+			try {
+				int cell = board[rOffset][cOffset];
+				if (cell != player) {
+					return false; // if any cell in the shape is the wrong color
+				}
+			}
+			catch (IndexOutOfBoundsException ioobx) {
+				return false;
+			}
+		}
+		return true; // if all cells in the shape were player's color
 	}
 
 	public String toString() {

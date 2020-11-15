@@ -28,21 +28,22 @@ public class MonteCarloNode {
 	 * Compute the Upper Confidence Bound 1 of a node
 	 */
 	public float upperConfidenceBound() {
-		float ucb;
-		float avgValue = totalValue / (float) visits;
-
-		try {
-			ucb = (float) (avgValue + (temperature * Math.sqrt(Math.log(parent.getVisits()) / visits)));
-		}
-		catch (ArithmeticException ax) {
+		if (visits == 0) {
 			return Float.MAX_VALUE;
 		}
+
+		float ucb;
+		float avgValue = totalValue / (float) visits;
+		ucb = (float) (avgValue + (temperature * Math.sqrt(Math.log(parent.getVisits()) / visits)));
 
 		return ucb;
 	}
 
 	public void setChild(int move, MonteCarloNode child) {
-		if (children[move] == null) {
+		if (child == null) {
+			return;
+		}
+		if (children[move] == null && child.getVisits() > 1) {
 			propagate(child.getTotalValue(), child.getVisits());
 		}
 		children[move] = child;
