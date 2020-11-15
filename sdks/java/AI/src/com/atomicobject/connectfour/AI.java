@@ -9,12 +9,16 @@ public class AI {
 	private int turnTimeLimit;
 	private Map<String, MonteCarloNode> nodeCache;
 	private MonteCarloNode lastNode;
+	private int[] rolloutMoves;
+	private int rollouts;
 
 	public AI() {
 		random = new Random();
-		mcTemp = 1.5f;
+		mcTemp = 2.0f;
 		nodeCache = new HashMap<>();
 		lastNode = null;
+		rolloutMoves = new int[7];
+		rollouts = 0;
 	}
 
 	public void setPlayer(int player) {
@@ -27,11 +31,33 @@ public class AI {
 
 	public int computeMove(GameState state) {
 		MonteCarloNode localRoot = nodeCache.getOrDefault(state.getKey(), new MonteCarloNode(lastNode, state, mcTemp));
+		MonteCarloNode[] children = localRoot.getChildren();
+//		for (int i = 0; i < children.length; i++) {
+//			if
+//		}
+
 		mctsExpand(localRoot);
-		for (int i = 0; i < 7; i++) {
+//		localRoot.print(1);
+//		System.out.println("--------------------------------------------------------------------------");
+		for (int i = 0; i < 50000; i++) {
 			mcts(localRoot);
+//			localRoot.print(1);
+//			System.out.println("--------------------------------------------------------------------------");
 		}
-		int move = mctsGetBestChild(localRoot);
+		float bestValue = -Float.MAX_VALUE;
+		int move = -1;
+		for (int i = 0; i < children.length; i++) {
+			MonteCarloNode child = children[i];
+			if (child != null && child.upperConfidenceBound() > bestValue) {
+				bestValue = child.averageValue();
+				move = i;
+			}
+		}
+		for (MonteCarloNode child : children) {
+			String s = child == null ? "null" : String.format("value: %f\t\t ucb: %f\t\t visits: %d", child.averageValue(), child.upperConfidenceBound(), child.getVisits());
+			System.out.println(s);
+		}
+		System.out.println("parent visits: " + localRoot.getVisits());
 
 		GameState chosenState = state.simulate(move);
 		lastNode = nodeCache.getOrDefault(chosenState.getKey(), new MonteCarloNode(localRoot, chosenState, mcTemp));
@@ -53,29 +79,39 @@ public class AI {
 			}
 		}
 		else {
-			int bestChild = mctsGetBestChild(current);
+			int bestChild = mctsGetPromisingChild(current);
 			mcts(current.getChildren()[bestChild]);
 		}
 	}
 
-	private int mctsGetBestChild(MonteCarloNode parent) {
-		float maxUCB = Float.MIN_VALUE;
+	private int mctsGetPromisingChild(MonteCarloNode parent) {
+		float maxUCB = -Float.MAX_VALUE;
 		MonteCarloNode[] children = parent.getChildren();
-		int bestChildIndex = -1;
+		int promisingChildIndex = -1;
 
 		for (int i = 0; i < children.length; i++) {
 			MonteCarloNode child = children[i];
+			float ucb;
 			if (child == null) {
-				continue;
+				if (parent.STATE.getMoveMatrix()[i]) {
+					ucb = Float.MAX_VALUE;
+					parent.setChild(i, new MonteCarloNode(parent, parent.STATE.simulate(i), mcTemp));
+				}
+				else {
+					continue;
+				}
 			}
-			float ucb = child.upperConfidenceBound();
-			System.out.println(ucb);
+			else {
+				ucb = child.upperConfidenceBound();
+			}
+//			System.out.print("UCB: " + ucb + "\t");
 			if (ucb > maxUCB) {
 				maxUCB = ucb;
-				bestChildIndex = i;
+				promisingChildIndex = i;
 			}
 		}
-		return bestChildIndex;
+//		System.out.println();
+		return promisingChildIndex;
 	}
 
 	private MonteCarloNode mctsExpand(MonteCarloNode node) {
@@ -103,25 +139,32 @@ public class AI {
 	}
 
 	private void mctsRollout(MonteCarloNode node) {
-		int tryMove = random.nextInt(7);
 		if (!node.STATE.isTerminal()) {
+			int tryMove = random.nextInt(7);
 			while (!node.STATE.getMoveMatrix()[tryMove]) {
 				tryMove = (tryMove + 1) % 7;
 			}
 			GameState nextState = node.STATE.simulate(tryMove);
+			rolloutMoves[tryMove]++;
 			MonteCarloNode next = new MonteCarloNode(node, nextState, mcTemp);
 			if (!nodeCache.containsKey(nextState.getKey())) {
-				node.setChild(tryMove, next);
 				nodeCache.put(nextState.getKey(), next);
 			}
-			else {
-				node.setChild(tryMove, next);
-			}
+			node.setChild(tryMove, next);
 			mctsRollout(next);
 		}
 		else {
 			int value = node.STATE.evaluate(player);
 			node.propagate(value, 1);
+			rollouts++;
 		}
+	}
+
+	public void printData() {
+		System.out.println(Arrays.toString(rolloutMoves));
+		int tot = rolloutMoves[0] + rolloutMoves[1] + rolloutMoves[2] + rolloutMoves[3] + rolloutMoves[4] + rolloutMoves[5] + rolloutMoves[6];
+		System.out.println("total simulated moves: " + tot);
+		System.out.println("total rollouts: " + rollouts);
+		System.out.println("avg moves per rollout: " + (float) tot / (float) rollouts);
 	}
 }

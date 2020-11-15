@@ -1,5 +1,6 @@
 package com.atomicobject.connectfour;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,20 +34,36 @@ public class MonteCarloNode {
 		}
 
 		float ucb;
-		float avgValue = totalValue / (float) visits;
-		ucb = (float) (avgValue + (temperature * Math.sqrt(Math.log(parent.getVisits()) / visits)));
+		float avgValue = (float) totalValue / (float) visits;
+		float logVpOverV = (float) (Math.log(parent.getVisits()) / (float) visits);
+		ucb = (float) (avgValue + (temperature * Math.sqrt(logVpOverV)));
 
 		return ucb;
 	}
 
-	public void setChild(int move, MonteCarloNode child) {
-		if (child == null) {
+	public float averageValue() {
+//		if (visits == 0) {
+//			return Float.MAX_VALUE;
+//		}
+		return (float) totalValue / (float) visits;
+	}
+
+	public void setChild(int move, MonteCarloNode newChild) {
+		if (newChild == null) {
+			children[move] = newChild;
 			return;
 		}
-		if (children[move] == null && child.getVisits() > 1) {
-			propagate(child.getTotalValue(), child.getVisits());
+		if (children[move] == null && newChild.getVisits() > 0) {
+			propagate(newChild.getTotalValue(), newChild.getVisits());
 		}
-		children[move] = child;
+		else if (children[move] != null) {
+//			propagate(newChild.getTotalValue() - children[move].getTotalValue(), newChild.getVisits() - children[move].getVisits());
+		}
+		children[move] = newChild;
+	}
+
+	public MonteCarloNode getParent() {
+		return parent;
 	}
 
 	private int getTotalValue() {
@@ -76,6 +93,37 @@ public class MonteCarloNode {
 
 	public MonteCarloNode[] getChildren() {
 		return children;
+	}
+
+	public void print(int plies) {
+		System.out.print(plies + ": ");
+		System.out.println(this);
+		if (plies > 0) {
+			plies--;
+			for (MonteCarloNode child : children) {
+				if (child != null) {
+					child.print(plies);
+				}
+				else {
+					System.out.println("null");
+				}
+			}
+		}
+	}
+
+	@Override
+	public String toString() {
+		String out = "STATE:\n\tboard:\n";
+		for (int[] row : STATE.getBoard()) {
+			out += "\t\t" + Arrays.toString(row) + "\n";
+		}
+		out += "\tplayer: " + STATE.getPlayer() + "\n";
+		out += "\tstate value for player: " + STATE.evaluate(STATE.getPlayer()) + "\n";
+		out += "NODE:\n";
+		out += "\ttotal visits: " + visits + "\n";
+		out += "\ttotal value: " + totalValue + "\n";
+		out += "\tparent null: " + (parent == null);
+		return out;
 	}
 
 }

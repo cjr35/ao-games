@@ -112,10 +112,10 @@ public class GameState {
 
 	public int evaluate(int player) {
 		if (isWin(player)) {
-			return 1;
+			return 100;
 		}
 		else if (isLoss(player)) {
-			return -1;
+			return -100;
 		}
 		else {
 			return 0;

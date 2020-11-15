@@ -43,6 +43,7 @@ public class Client {
 				System.out.println("----------------------------------------------time: " + (end - start));
 				respondWithMove(move);
 			}
+			ai.printData();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
