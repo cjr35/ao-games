@@ -112,10 +112,10 @@ public class GameState {
 
 	public float evaluate(int player) {
 		if (isWin(player)) {
-			return 100;
+			return 100.0f;
 		}
 		else if (isLoss(player)) {
-			return -100;
+			return -100.0f;
 		}
 		else {
 			return 0.0f;
