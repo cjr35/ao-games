@@ -13,29 +13,6 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-//		AI ai = new AI();
-//		ai.setPlayer(1);
-//		GameState gs = new GameState();
-////		int[][] board = {
-////				{ 1, 2, 1, 0, 0, 2, 1 },
-////				{ 2, 1, 2, 2, 1, 1, 2 },
-////				{ 1, 2, 1, 2, 1, 2, 1 },
-////				{ 1, 2, 1, 2, 1, 2, 1 },
-////				{ 2, 1, 2, 1, 2, 1, 2 },
-////				{ 2, 1, 2, 1, 2, 1, 2 }
-////		};
-//		int[][] board = {
-//				{ 0, 0, 0, 0, 0, 0, 0 },
-//				{ 0, 0, 0, 2, 1, 0, 0 },
-//				{ 1, 2, 1, 2, 1, 2, 1 },
-//				{ 1, 2, 1, 2, 1, 2, 1 },
-//				{ 2, 1, 2, 1, 2, 1, 2 },
-//				{ 2, 1, 2, 1, 2, 1, 2 }
-//		};
-//		gs.setBoard(board);
-//		gs.setPlayer(1);
-//		System.out.println("AI chose: " + ai.computeMove(gs));
-//		ai.printData();
 	}
 
 	private static int parsePort(String port) {
