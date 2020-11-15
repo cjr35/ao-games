@@ -53,11 +53,11 @@ public class AI {
 				move = i;
 			}
 		}
-		for (MonteCarloNode child : children) {
-			String s = child == null ? "null" : String.format("value: %f\t\t ucb: %f\t\t visits: %d", child.averageValue(), child.upperConfidenceBound(), child.getVisits());
-			System.out.println(s);
-		}
-		System.out.println("parent visits: " + localRoot.getVisits());
+//		for (MonteCarloNode child : children) {
+//			String s = child == null ? "null" : String.format("value: %f\t\t ucb: %f\t\t visits: %d", child.averageValue(), child.upperConfidenceBound(), child.getVisits());
+//			System.out.println(s);
+//		}
+//		System.out.println("parent visits: " + localRoot.getVisits());
 
 		GameState chosenState = state.simulate(move);
 		lastNode = nodeCache.getOrDefault(chosenState.getKey(), new MonteCarloNode(localRoot, chosenState, mcTemp));
