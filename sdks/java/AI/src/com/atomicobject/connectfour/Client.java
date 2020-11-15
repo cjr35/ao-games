@@ -34,6 +34,7 @@ public class Client {
 			while ((state = readStateFromServer()) != null) {
 				if (firstTurn) {
 					ai.setPlayer(state.getPlayer());
+					ai.setTurnTimeLimit(state.getMaxTurnTime());
 					firstTurn = false;
 				}
 				int move = ai.computeMove(state);
