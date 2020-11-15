@@ -74,7 +74,7 @@ public class AI {
 				mctsRollout(next);
 			}
 			else {
-				int value = current.STATE.evaluate(player);
+				float value = current.STATE.evaluate(player);
 				current.propagate(value, 1);
 			}
 		}
@@ -154,7 +154,7 @@ public class AI {
 			mctsRollout(next);
 		}
 		else {
-			int value = node.STATE.evaluate(player);
+			float value = node.STATE.evaluate(player);
 			node.propagate(value, 1);
 			rollouts++;
 		}

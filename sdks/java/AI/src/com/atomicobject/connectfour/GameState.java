@@ -110,7 +110,7 @@ public class GameState {
 		return isWin(1) || isWin(2) || isDraw();
 	}
 
-	public int evaluate(int player) {
+	public float evaluate(int player) {
 		if (isWin(player)) {
 			return 100;
 		}
@@ -118,17 +118,18 @@ public class GameState {
 			return -100;
 		}
 		else {
-			return 0;
+			return 0.0f;
 		}
+//		float evaluateShapes(player, winShapes, true);
 	}
 
 	private boolean isWin(int player) {
-		return findShapes(player, winShapes);
+		return evaluateShapes(player, winShapes, true) == 1.0f;
 	}
 
 	private boolean isLoss(int player) {
 		int opponent = player == 1 ? 2 : 1;
-		return findShapes(opponent, winShapes);
+		return evaluateShapes(opponent, winShapes, true) == 1.0f;
 	}
 
 	private boolean isDraw() {
@@ -141,56 +142,100 @@ public class GameState {
 	}
 
 	private static int[][][] winShapes = {
-			{	{ 0, 0 },
-				{ 1, 0 },
-				{ 2, 0 },
-				{ 3, 0 }	},	// vertical		|
+			{	{ 0, 0, 1 },
+				{ 1, 0, 1 },
+				{ 2, 0, 1 },
+				{ 3, 0, 1 }	},	// vertical		|
 
-			{	{ 0, 0 },
-				{ 1, 1 },
-				{ 2, 2 },
-				{ 3, 3 }	},	// diagonal		\
+			{	{ 0, 0, 1 },
+				{ 1, 1, 1 },
+				{ 2, 2, 1 },
+				{ 3, 3, 1 }	},	// diagonal		\
 
-			{	{ 0, 0 },
-				{ 0, 1 },
-				{ 0, 2 },
-				{ 0, 3 }	},	// across		-
+			{	{ 0, 0, 1 },
+				{ 0, 1, 1 },
+				{ 0, 2, 1 },
+				{ 0, 3, 1 }	},	// across		-
 
-			{	{ 0, 0 },
-				{ 1, -1 },
-				{ 2, -2 },
-				{ 3, -3 }	},	// diagonal		/
+			{	{ 0, 0, 1 },
+				{ 1, -1, 1 },
+				{ 2, -2, 1 },
+				{ 3, -3, 1 }	},	// diagonal		/
 	};
 
-	private boolean findShapes(int player, int[][][] shapeList) {
+	private static int[][][] sevenShapes = {
+			{	{ 0, 0, 1 },	//
+				{ 0, 1, 1 },	//	(@)(@)(@)( )
+				{ 0, 2, 1 },	//	   (@)
+				{ 0, 3, 0 },	//	(@)
+				{ 1, 1, 1 },	//
+				{ 2, 0, 1 } },	//
+
+			{	{ 0, 0, 0 },	//
+				{ 0, 1, 1 },	//	( )(@)(@)(@)
+				{ 0, 2, 1 },	//	      (@)
+				{ 0, 3, 1 },	//           (@)
+				{ 1, 2, 1 },	//
+				{ 2, 3, 1 } },	//
+
+			{	{ 0, 0, 1 },	//
+				{ 1, 1, 1 },	//	(@)
+				{ 2, 0, 1 },	//	   (@)
+				{ 2, 1, 1 },	//	(@)(@)(@)
+				{ 2, 2, 1 },	//	         ( )
+				{ 3, 3, 0 } },	//
+
+			{	{ 0, 3, 1 },	//
+				{ 1, 2, 1 },	//	         (@)
+				{ 2, 1, 1 },	//	      (@)
+				{ 2, 2, 1 },	//	   (@)(@)(@)
+				{ 2, 3, 1 },	//	( )
+				{ 0, 3, 0 } },	//
+	};
+
+	private float evaluateShapes(int player, int[][][] shapeList, boolean shortCircuit) {
+		float totalEvaluation = 0.0f;
 		for (int i = 0; i < board.length; i++) {
 			for (int j = 0; j < board[0].length; j++) {
 				for (int[][] shape : shapeList) {
-					if (findShapeAt(i, j, shape, player)) {
-						return true;
+					float shapeCompletion = evaluateShapeAt(i, j, player, shape, shortCircuit);
+					if (shortCircuit && shapeCompletion == 1.0f) {
+						return 1.0f;
+					}
+					else {
+						totalEvaluation += shapeCompletion;
 					}
 				}
 			}
 		}
-		return false;
+		return totalEvaluation / (float) (board.length * board[0].length);
 	}
 
-	private boolean findShapeAt(int row, int col, int[][] shape, int player) {
+	private float evaluateShapeAt(int row, int col, int player, int[][] shape, boolean strict) {
+		int size = shape.length;
+		int cellsFound = 0;
 		for (int[] coordinate : shape) {
 			int rOffset = row + coordinate[0];
 			int cOffset = col + coordinate[1];
 
 			try {
 				int cell = board[rOffset][cOffset];
-				if (cell != player) {
-					return false; // if any cell in the shape is the wrong color
+				if (cell == player) {
+					// record finding one correct cell
+					cellsFound++;
+				}
+				else if (cell != 0 || strict) {
+					// either a cell was the wrong color or the user wants only complete shapes
+					return 0.0f;
 				}
 			}
 			catch (IndexOutOfBoundsException ioobx) {
-				return false;
+				// if the shape would extend out of the board, it can't be completed
+				return 0.0f;
 			}
 		}
-		return true; // if all cells in the shape were player's color
+		// return the percent completion of the shape
+		return (float) cellsFound / (float) size;
 	}
 
 	public String toString() {

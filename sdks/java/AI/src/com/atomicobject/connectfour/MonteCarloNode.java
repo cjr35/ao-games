@@ -8,7 +8,7 @@ public class MonteCarloNode {
 	private MonteCarloNode parent;
 	private MonteCarloNode[] children;
 	private float temperature;
-	private int totalValue;
+	private float totalValue;
 	private int visits;
 	public final GameState STATE;
 
@@ -34,7 +34,7 @@ public class MonteCarloNode {
 		}
 
 		float ucb;
-		float avgValue = (float) totalValue / (float) visits;
+		float avgValue = totalValue / (float) visits;
 		float logVpOverV = (float) (Math.log(parent.getVisits()) / (float) visits);
 		ucb = (float) (avgValue + (temperature * Math.sqrt(logVpOverV)));
 
@@ -45,7 +45,7 @@ public class MonteCarloNode {
 //		if (visits == 0) {
 //			return Float.MAX_VALUE;
 //		}
-		return (float) totalValue / (float) visits;
+		return totalValue / (float) visits;
 	}
 
 	public void setChild(int move, MonteCarloNode newChild) {
@@ -66,7 +66,7 @@ public class MonteCarloNode {
 		return parent;
 	}
 
-	private int getTotalValue() {
+	private float getTotalValue() {
 		return totalValue;
 	}
 
@@ -83,7 +83,7 @@ public class MonteCarloNode {
 	 * Propagate value from a leaf node back up to the root of the tree
 	 * @param value the value of the game state at the leaf node
 	 */
-	public void propagate(int value, int visits) {
+	public void propagate(float value, int visits) {
 		totalValue += value;
 		this.visits += visits;
 		if (parent != null) {
