@@ -48,7 +48,8 @@ public class AI {
 				mctsRollout(next);
 			}
 			else {
-				current.propagate(10, 1);
+				int value = current.STATE.evaluate(player);
+				current.propagate(value, 1);
 			}
 		}
 		else {
@@ -119,7 +120,8 @@ public class AI {
 			mctsRollout(next);
 		}
 		else {
-			node.propagate(10, 1);
+			int value = node.STATE.evaluate(player);
+			node.propagate(value, 1);
 		}
 	}
 }
